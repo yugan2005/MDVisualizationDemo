@@ -14,6 +14,12 @@ public class AnimationView {
 	private Group particleGroup;
 	private double[][] particlePositions;
 	private Button startButton;
+	private Button stopButton;
+
+	public Button getStopButton() {
+		return stopButton;
+	}
+
 	private Sphere[] particles;
 	
 	public Sphere[] getParticles() {
@@ -41,9 +47,14 @@ public class AnimationView {
 			particles[i].setTranslateZ(particlePositions[2][i]);
 		}
 		particleGroup.getChildren().addAll(particles);
+		particleGroup.setAutoSizeChildren(false);
+		particleGroup.setLayoutX(0);
+		particleGroup.setLayoutY(0);
 		
 		startButton = new Button("Start");
 		simulationPane.getChildren().add(particleGroup);
+		stopButton = new Button("Stop");
+		simulationPane.getChildren().add(stopButton);
 		
 		AnchorPane.setTopAnchor(particleGroup, 10.0);
 		AnchorPane.setBottomAnchor(particleGroup, 50.0);
@@ -51,7 +62,15 @@ public class AnimationView {
 		AnchorPane.setRightAnchor(particleGroup, 10.0);
 		
 		simulationPane.getChildren().add(startButton);
-		AnchorPane.setBottomAnchor(startButton, 10.0);
+		AnchorPane.setBottomAnchor(startButton, 25.0);
+		AnchorPane.setLeftAnchor(startButton, 10.0);
+		AnchorPane.setRightAnchor(startButton, 10.0);
+
+
+		AnchorPane.setBottomAnchor(stopButton, 0.0);
+		AnchorPane.setLeftAnchor(stopButton, 10.0);
+		AnchorPane.setRightAnchor(stopButton, 10.0);
+
 	}
 
 	public AnchorPane getSimulationPane() {

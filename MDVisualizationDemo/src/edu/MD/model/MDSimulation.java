@@ -9,10 +9,10 @@ public class MDSimulation {
 
 	private int particleNumber;
 	
-	private ScheduledService<Double> worker;
+	private ScheduledService<double[][]> worker;
 
 
-	public ScheduledService<Double> getWorker() {
+	public ScheduledService<double[][]> getWorker() {
 		return worker;
 	}
 
@@ -24,21 +24,21 @@ public class MDSimulation {
 				positions[i][j] = j * 100;
 			}
 		}
-		worker = new ScheduledService<Double>(){
+		worker = new ScheduledService<double[][]>(){
 			@Override
-			protected Task<Double> createTask() {
-				return new Task<Double>() {
+			protected Task<double[][]> createTask() {
+				return new Task<double[][]>() {
 
 					@Override
-					protected Double call() throws Exception {
-						positions[0][1] += 10;
-//						double[][] newPosition = new double[3][particleNumber];
-//						for (int i = 0; i < 3; i++) {
-//							for (int j = 0; j < particleNumber; j++) {
-//								newPosition[i][j] = (j % 2 == 0) ? positions[i][j] - 10 : positions[i][j] + 10;
-//							}
-//						}
-						return positions[0][1];
+					protected double[][] call() throws Exception {
+						double[][] newPosition = new double[3][particleNumber];
+						for (int i = 0; i < 3; i++) {
+							for (int j = 0; j < particleNumber; j++) {
+								newPosition[i][j] = positions[i][j] + 10*Math.random();
+							}
+						}
+						positions = newPosition;
+						return newPosition;
 					}
 
 				};
