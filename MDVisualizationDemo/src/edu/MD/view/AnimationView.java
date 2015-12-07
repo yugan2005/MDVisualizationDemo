@@ -1,9 +1,9 @@
 package edu.MD.view;
 
 import edu.MD.model.MDSimulation;
-import javafx.scene.Group;
 import javafx.scene.control.Button;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.shape.Sphere;
 
 public class AnimationView {
@@ -11,7 +11,7 @@ public class AnimationView {
 	private MDSimulation simulation;
 	private int particleNumber;
 	private AnchorPane simulationPane;
-	private Group particleGroup;
+	private Pane particlePane;
 	private double[][] particlePositions;
 	private Button startButton;
 	private Button stopButton;
@@ -32,13 +32,13 @@ public class AnimationView {
 
 	public AnimationView(MDSimulation simulation){
 		simulationPane = new AnchorPane();
-		simulationPane.setPrefHeight(600);
-		simulationPane.setPrefWidth(800);
+		simulationPane.setPrefHeight(768);
+		simulationPane.setPrefWidth(1024);
 		
 		this.simulation = simulation;
 		particleNumber = this.simulation.getParticleNumber();
 		particlePositions = this.simulation.getPositions();
-		particleGroup = new Group();
+		particlePane = new Pane();
 		particles = new Sphere[particleNumber];
 		for (int i=0; i<particleNumber; i++){
 			particles[i] = new Sphere(10, 128);
@@ -46,20 +46,19 @@ public class AnimationView {
 			particles[i].setTranslateY(particlePositions[1][i]);
 			particles[i].setTranslateZ(particlePositions[2][i]);
 		}
-		particleGroup.getChildren().addAll(particles);
-		particleGroup.setAutoSizeChildren(false);
-		particleGroup.setLayoutX(0);
-		particleGroup.setLayoutY(0);
+		particlePane.getChildren().addAll(particles);
+		particlePane.setLayoutX(0);
+		particlePane.setLayoutY(0);
 		
 		startButton = new Button("Start");
-		simulationPane.getChildren().add(particleGroup);
+		simulationPane.getChildren().add(particlePane);
 		stopButton = new Button("Stop");
 		simulationPane.getChildren().add(stopButton);
 		
-		AnchorPane.setTopAnchor(particleGroup, 10.0);
-		AnchorPane.setBottomAnchor(particleGroup, 50.0);
-		AnchorPane.setLeftAnchor(particleGroup, 10.0);
-		AnchorPane.setRightAnchor(particleGroup, 10.0);
+		AnchorPane.setTopAnchor(particlePane, 10.0);
+		AnchorPane.setBottomAnchor(particlePane, 50.0);
+		AnchorPane.setLeftAnchor(particlePane, 10.0);
+		AnchorPane.setRightAnchor(particlePane, 10.0);
 		
 		simulationPane.getChildren().add(startButton);
 		AnchorPane.setBottomAnchor(startButton, 25.0);

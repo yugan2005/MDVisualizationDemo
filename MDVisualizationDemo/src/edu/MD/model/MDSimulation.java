@@ -21,7 +21,7 @@ public class MDSimulation {
 		positions = new double[3][particleNumber];
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < particleNumber; j++) {
-				positions[i][j] = j * 100;
+				positions[i][j] = j * 100+25;
 			}
 		}
 		worker = new ScheduledService<double[][]>(){
@@ -34,7 +34,7 @@ public class MDSimulation {
 						double[][] newPosition = new double[3][particleNumber];
 						for (int i = 0; i < 3; i++) {
 							for (int j = 0; j < particleNumber; j++) {
-								newPosition[i][j] = positions[i][j] + 10*Math.random();
+								newPosition[i][j] = positions[i][j] + 10*(Math.random()-0.5);
 							}
 						}
 						positions = newPosition;
@@ -45,7 +45,7 @@ public class MDSimulation {
 			}
 			
 		};
-		worker.setPeriod(Duration.millis(100));
+		worker.setPeriod(Duration.millis(40));
 	}
 
 	public double[][] getPositions() {
