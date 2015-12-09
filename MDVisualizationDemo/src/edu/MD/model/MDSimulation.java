@@ -57,4 +57,9 @@ public class MDSimulation {
 	public int getParticleNumber() {
 		return particleNumber;
 	}
+
+	public double[] getSystemBoundary() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
