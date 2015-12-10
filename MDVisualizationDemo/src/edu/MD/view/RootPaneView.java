@@ -1,6 +1,8 @@
 package edu.MD.view;
 
 import edu.MD.model.MDSimulation;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -13,6 +15,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
 import javafx.scene.shape.Sphere;
+import javafx.scene.transform.Rotate;
 
 public class RootPaneView {
 
@@ -40,19 +43,31 @@ public class RootPaneView {
 	private Sphere[] particles;
 
 	private double[] systemBounday;
-
+	
+	@FXML
 	private SubScene simulationScene;
+	
+	@FXML
+	private Group simulationGroup;
 
 	private PerspectiveCamera simulationCamera = new PerspectiveCamera(true);
 
 	private MDSimulation model;
 
-	public RootPaneView(MDSimulation simulationModel) {
-		this.model = simulationModel;
+	private DoubleProperty simulationViewRotateAngleX = new SimpleDoubleProperty(0);
+
+	private DoubleProperty simulationViewRotateAngleY = new SimpleDoubleProperty(0);
+
+	public RootPaneView() {
 	}
 
 	@FXML
 	private void initialize() {
+
+	}
+	
+	public void setRootPaneView(MDSimulation simulationModel){
+		this.model = simulationModel;
 
 		systemBounday = model.getSystemBoundary();
 		invisibleBox = new Box(systemBounday[0], systemBounday[1], systemBounday[2]);
@@ -60,32 +75,42 @@ public class RootPaneView {
 		invisibleBox.setTranslateY(systemBounday[1] / 2);
 		invisibleBox.setTranslateZ(systemBounday[2] / 2);
 		invisibleBox.setVisible(false);
-		Group simulationGroup = new Group(invisibleBox);
+		simulationGroup.getChildren().add(invisibleBox);
 
-		simulationGroup.getChildren().addAll(buildAxes());
+		Node[] axes = buildAxes();
+		simulationGroup.getChildren().addAll(axes);
 
 		double[][] positions = model.getPositions();
 		int num = model.getParticleNumber();
 		particles = new Sphere[num];
 		for (int i = 0; i < num; i++) {
 			particles[i] = new Sphere(SPHERE_SIZE, SPHERE_DIV);
-			particles[i].setTranslateX(positions[i][0]);
-			particles[i].setTranslateY(positions[i][1]);
-			particles[i].setTranslateZ(positions[i][2]);
+			particles[i].setTranslateX(positions[0][i]);
+			particles[i].setTranslateY(positions[1][i]);
+			particles[i].setTranslateZ(positions[2][i]);
 		}
 		simulationGroup.getChildren().addAll(particles);
 
-		double simulationSceneHeight = simulationPane.getHeight() - AnchorPane.getBottomAnchor(startButton) * 2
-				- startButton.getHeight();
-		simulationScene = new SubScene(simulationGroup, simulationPane.getWidth(), simulationSceneHeight, true,
-				SceneAntialiasing.BALANCED);
-		simulationScene.setCamera(simulationCamera);
-		simulationPane.getChildren().add(simulationScene);
+//		double simulationSceneHeight = simulationPane.getPrefHeight() - AnchorPane.getBottomAnchor(startButton) * 2
+//				- 25;
+//		simulationScene = new SubScene(simulationGroup, simulationPane.getPrefWidth(), simulationSceneHeight, true,
+//				SceneAntialiasing.BALANCED);
+//		simulationScene.setCamera(simulationCamera);
+//		simulationPane.getChildren().add(simulationScene);
+		
+		Rotate xRotate;
+		Rotate yRotate;
+		simulationPane.getTransforms().setAll(xRotate = new Rotate(0, Rotate.X_AXIS),
+				yRotate = new Rotate(0, Rotate.Y_AXIS));
+		xRotate.angleProperty().bind(simulationViewRotateAngleX);
+		yRotate.angleProperty().bind(simulationViewRotateAngleY);
 
 	}
 
 	private Node[] buildAxes() {
-		Box[] axes = new Box[3];
+		
+		Node[] axes = new Node[3];
+		
 		
 		final PhongMaterial redMaterial = new PhongMaterial();
 		redMaterial.setDiffuseColor(Color.DARKRED);
@@ -116,6 +141,10 @@ public class RootPaneView {
 		yAxis.setMaterial(greenMaterial);
 		zAxis.setMaterial(blueMaterial);
 		
+		axes[0] = xAxis;
+		axes[1] = yAxis;
+		axes[2] = zAxis;
+		
 		return axes;
 	}
 
@@ -133,6 +162,14 @@ public class RootPaneView {
 
 	public Sphere[] getParticles() {
 		return particles;
+	}
+	
+	public DoubleProperty getSimulationRotateAngleX() {
+		return simulationViewRotateAngleX;
+	}
+
+	public DoubleProperty getSimulationRotateAngleY() {
+		return simulationViewRotateAngleY;
 	}
 
 }
