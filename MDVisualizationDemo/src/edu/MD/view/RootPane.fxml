@@ -1,28 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane fx:id="rootPane" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.MD.view.RootPaneView">
-   <children>
-      <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="600.0" prefWidth="800.0">
-        <items>
-          <AnchorPane fx:id="simulationPane" prefHeight="300.0" prefWidth="800.0">
-               <children>
-                  <Button fx:id="startButton" mnemonicParsing="false" text="Start" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="100.0" />
-                  <Button fx:id="pauseButton" layoutX="638.0" layoutY="270.0" mnemonicParsing="false" text="Pause" AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="100.0" />
-                  <SubScene fx:id="simulationScene" height="260" layoutX="0" width="800" depthBuffer="true">
-                    <root>
-                      <Group fx:id="simulationGroup" layoutX="0" layoutY="0" />
-                    </root>
-                  </SubScene>
-               </children>
-            </AnchorPane>
-          <AnchorPane />
-        </items>
-      </SplitPane>
-   </children>
-</AnchorPane>
+<SplitPane fx:id="rootPane" dividerPositions="0.5" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" orientation="VERTICAL" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.MD.view.RootPaneView">
+   <items>
+      <AnchorPane fx:id="simulationPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="350.0" prefWidth="800.0">
+         <children>
+            <ButtonBar fx:id="buttonBar" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+               <buttons>
+                  <Button fx:id="startButton" mnemonicParsing="false" text="Start" />
+                  <Button fx:id="pauseButton" mnemonicParsing="false" text="Pause" />
+               </buttons>
+               <padding>
+                  <Insets right="5.0" />
+               </padding>
+            </ButtonBar>
+         </children>
+      </AnchorPane>
+      <AnchorPane fx:id="chartPane" />
+   </items>
+</SplitPane>

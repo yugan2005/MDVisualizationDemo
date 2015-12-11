@@ -9,6 +9,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.SubScene;
+import javafx.scene.control.SplitPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
@@ -16,7 +17,7 @@ import javafx.stage.Stage;
 public class MainApp extends Application {
 	
 	private MDSimulation model;
-	private AnchorPane rootPane;
+	private SplitPane rootPane;
 	private RootPaneView rootPaneView;
 	private double anchorX, anchorY, anchorAngleX, anchorAngleY;
 	private DoubleProperty angleX, angleY;
@@ -28,7 +29,7 @@ public class MainApp extends Application {
 	}
 	
 	public MainApp() {
-		model = new MDSimulation(5);
+		model = new MDSimulation(3);
 	}
 	
 	
@@ -38,7 +39,7 @@ public class MainApp extends Application {
 		URL fxmlUrl = MainApp.class.getResource("/edu/MD/view/RootPane.fxml");
 		loader.setLocation(fxmlUrl);
 		
-		rootPane = loader.<AnchorPane>load();
+		rootPane = loader.<SplitPane>load();
 		rootPaneView = loader.<RootPaneView>getController();
 		rootPaneView.setRootPaneView(model);
 		
