@@ -2,76 +2,94 @@ package edu.MD.control;
 
 import java.net.URL;
 
-import edu.MD.model.MDSimulation;
+import edu.MD.DAO.MDDataObject;
 import edu.MD.view.RootPaneView;
 import javafx.application.Application;
-import javafx.beans.property.DoubleProperty;
+import javafx.concurrent.ScheduledService;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.SubScene;
-import javafx.scene.control.SplitPane;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
-	
-	private MDSimulation model;
-	private SplitPane rootPane;
-	private RootPaneView rootPaneView;
-	private double anchorX, anchorY, anchorAngleX, anchorAngleY;
-	private DoubleProperty angleX, angleY;
-	
-	
-	
+
+	private MDDataObject model;
+	private RootPaneView view;
+
 	public static void main(String[] args) {
 		launch(args);
 	}
-	
+
 	public MainApp() {
-		model = new MDSimulation(3);
+		model = MDDataObject.getInstance();
 	}
-	
-	
+
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		FXMLLoader loader = new FXMLLoader();
 		URL fxmlUrl = MainApp.class.getResource("/edu/MD/view/RootPane.fxml");
 		loader.setLocation(fxmlUrl);
-		
-		rootPane = loader.<SplitPane>load();
-		rootPaneView = loader.<RootPaneView>getController();
-		rootPaneView.setRootPaneView(model);
-		
-		angleX = rootPaneView.getSimulationRotateAngleX();
-		angleY = rootPaneView.getSimulationRotateAngleY();
-		
-		Scene scene = new Scene(rootPane);
+
+		Parent root = loader.load();
+		view = loader.<RootPaneView> getController();
+		view.setView(this);
+
+		Scene scene = new Scene(root);
 		primaryStage.setScene(scene);
 		hookupEvents();
 
 		primaryStage.show();
-		
+
 	}
 
 	private void hookupEvents() {
-		SubScene scene = rootPaneView.getSimulationScene();
-		
-		scene.setOnMousePressed((MouseEvent event) -> {
-			anchorX = event.getSceneX();
-			anchorY = event.getSceneY();
-			anchorAngleX = angleX.get();
-			anchorAngleY = angleY.get();
+
+		view.getStartButton().setOnAction(actionEvent -> ((ScheduledService<double[][]>) model.getWorker()).restart());
+
+		view.getPauseButton().setOnAction(actionEvent -> ((ScheduledService<double[][]>) model.getWorker()).cancel());
+
+		model.getWorker().setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+
+			@Override
+			public void handle(WorkerStateEvent event) {
+				double[][] newPosition = (double[][]) event.getSource().getValue();
+
+				for (int i = 0; i < newPosition.length; i++) {
+					for (int j = 0; j < newPosition[i].length; j++) {
+						switch (i) {
+						case 0:
+							view.getParticles()[j].setTranslateX(newPosition[i][j]);
+							break;
+						case 1:
+							view.getParticles()[j].setTranslateY(newPosition[i][j]);
+							break;
+						case 2:
+							view.getParticles()[j].setTranslateZ(newPosition[i][j]);
+							break;
+						}
+
+					}
+
+				}
+
+			}
 
 		});
 
-		scene.setOnMouseDragged((MouseEvent event) -> {
-			angleX.set(anchorAngleX - (anchorY - event.getSceneY()));
-			angleY.set(anchorAngleY + anchorX - event.getSceneX());
-		});		
 	}
-	
-	
-	
+
+	public double[] getSystemBoundary() {
+		return model.getSystemBoundary();
+	}
+
+	public double[][] getPositions() {
+		return model.getPositions();
+	}
+
+	public int getParticleNumber() {
+		return model.getParticleNumber();
+	}
 
 }

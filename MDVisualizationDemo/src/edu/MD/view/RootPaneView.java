@@ -1,25 +1,22 @@
 package edu.MD.view;
 
-import edu.MD.model.MDSimulation;
+import edu.MD.control.MainApp;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point3D;
-import javafx.scene.Camera;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.ParallelCamera;
-import javafx.scene.PerspectiveCamera;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.SplitPane;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.Box;
 import javafx.scene.shape.Cylinder;
 import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
@@ -27,12 +24,19 @@ import javafx.scene.transform.Translate;
 
 public class RootPaneView {
 
-	private static final double SPHERE_SIZE = 10;
+	private static final double WIDTH = 1000;
+	private static final double ROOTPANE_HEIGHT = 800;
+	private static final double SIMULATION_PANE_HEIGHT = 500;
+	private static final double BUTTON_BAR_HEIGHT = 40;
+
+	private static final double SPHERE_SIZE = 5;
 	private static final int SPHERE_DIV = 64;
 
-	private static final double LINE_SIZE = 1;
+	private static final double LINE_SIZE = 2;
 
 	private static final double AXIS_LENGTH = 20;
+
+	private static final Rotate CAMERA_DEFAULT_ROT = new Rotate(10, new Point3D(1, 1, 0));
 
 	@FXML
 	private SplitPane rootPane;
@@ -52,6 +56,9 @@ public class RootPaneView {
 	@FXML
 	private Button pauseButton;
 
+	@FXML
+	private Button defaulViewButton;
+
 	private SubScene simulationScene;
 
 	private Sphere[] particles;
@@ -66,32 +73,39 @@ public class RootPaneView {
 
 	private ParallelCamera simulationCamera;
 
-	private MDSimulation model;
+	private MainApp controller;
 
-	private DoubleProperty simulationViewRotateAngleX = new SimpleDoubleProperty(0);
+	double simulationSceneWidth, simulationSceneHeight;
 
-	private DoubleProperty simulationViewRotateAngleY = new SimpleDoubleProperty(0);
+	private Rotate cameraRotX;
+	private Rotate cameraRotY;
+	private DoubleProperty cameraRotateAngleX = new SimpleDoubleProperty(0);
+	private DoubleProperty cameraRotateAngleY = new SimpleDoubleProperty(0);
+	private double anchorX, anchorY, anchorAngleX, anchorAngleY;
 
 	public RootPaneView() {
 	}
 
 	@FXML
 	private void initialize() {
-
-	}
-
-	public void setRootPaneView(MDSimulation simulationModel) {
-		// obtain data from model
-		this.model = simulationModel;
-		systemBounday = model.getSystemBoundary();
-		positions = model.getPositions();
-		numOfParticles = model.getParticleNumber();
-
+		rootPane.setPrefHeight(ROOTPANE_HEIGHT);
+		rootPane.setPrefWidth(WIDTH);
+		simulationPane.setPrefHeight(SIMULATION_PANE_HEIGHT);
+		simulationPane.setPrefWidth(WIDTH);
+		buttonBar.setPrefHeight(BUTTON_BAR_HEIGHT);
 		// obtain data from the FXML view for constructing the subscene and
 		// center the group;
-		double simulationSceneWidth = simulationPane.getPrefWidth();
-		double simulationSceneHeight = simulationPane.getPrefHeight() - buttonBar.getPrefHeight()
+		simulationSceneWidth = simulationPane.getPrefWidth();
+		simulationSceneHeight = simulationPane.getPrefHeight() - buttonBar.getPrefHeight()
 				- AnchorPane.getBottomAnchor(buttonBar) - 5;
+	}
+
+	public void setView(MainApp mainApp) {
+		// obtain data from model
+		this.controller = mainApp;
+		systemBounday = controller.getSystemBoundary();
+		positions = controller.getPositions();
+		numOfParticles = controller.getParticleNumber();
 
 		// building the Group as the root of subscene
 		simulationGroup = new Group();
@@ -131,27 +145,54 @@ public class RootPaneView {
 		simulationGroup.setTranslateX(centerX);
 		simulationGroup.setTranslateY(centerY);
 		simulationGroup.setTranslateZ(moveZ);
-		
+
+		// setting the camera
 		simulationCamera = new ParallelCamera();
-		simulationCamera.setRotate(20);
-		simulationCamera.setRotationAxis(new Point3D(1,1,0));
+		simulationCamera.getTransforms().add(CAMERA_DEFAULT_ROT);
+
+		cameraRotX = new Rotate();
+		cameraRotX.setAxis(Rotate.X_AXIS);
+		cameraRotX.angleProperty().bind(cameraRotateAngleX);
+
+		cameraRotY = new Rotate();
+		cameraRotY.setAxis(Rotate.Y_AXIS);
+		cameraRotY.angleProperty().bind(cameraRotateAngleY);
+
+		simulationCamera.getTransforms().addAll(cameraRotX, cameraRotY);
 
 		simulationScene.setCamera(simulationCamera);
+		simulationScene.setFill(Color.LIGHTGREY); // strange need this fill to
+													// catch mouse event
+
+		// fix the scene on the simulationPane
 		simulationPane.getChildren().add(simulationScene);
 		AnchorPane.setTopAnchor(simulationScene, 0.0);
 		AnchorPane.setLeftAnchor(simulationScene, 0.0);
 		AnchorPane.setRightAnchor(simulationScene, 0.0);
 
-		// Rotate xRotate = new Rotate(0, Rotate.X_AXIS);
-		// xRotate.setPivotX(400);
-		// xRotate.setPivotY(150);
-		// Rotate yRotate = new Rotate(0, Rotate.Y_AXIS);
-		// yRotate.setPivotX(400);
-		// yRotate.setPivotY(150);
-		// simulationScene.getTransforms().setAll(xRotate, yRotate);
-		// xRotate.angleProperty().bind(simulationViewRotateAngleX);
-		// yRotate.angleProperty().bind(simulationViewRotateAngleY);
+		hookupViewEvents();
 
+	}
+
+	private void hookupViewEvents() {
+
+		simulationScene.setOnMousePressed((MouseEvent event) -> {
+			anchorX = event.getSceneX();
+			anchorY = event.getSceneY();
+			anchorAngleX = cameraRotateAngleX.get();
+			anchorAngleY = cameraRotateAngleY.get();
+
+		});
+
+		simulationScene.setOnMouseDragged((MouseEvent event) -> {
+			cameraRotateAngleX.set(anchorAngleX - (anchorY - event.getSceneY()) / 10);
+			cameraRotateAngleY.set(anchorAngleY + (anchorX - event.getSceneX()) / 10);
+		});
+
+		defaulViewButton.setOnAction(actionEvent -> {
+			cameraRotateAngleX.set(0);
+			cameraRotateAngleY.set(0);
+		});
 	}
 
 	private Cylinder[] getAxes(Point3D origin) {
@@ -196,6 +237,12 @@ public class RootPaneView {
 
 		line.getTransforms().addAll(moveToMidpoint, rotateAroundCenter);
 
+		final PhongMaterial grayMaterial = new PhongMaterial();
+		grayMaterial.setDiffuseColor(Color.LIGHTGRAY);
+		grayMaterial.setSpecularColor(Color.LIGHTGRAY);
+
+		line.setMaterial(grayMaterial);
+
 		return line;
 	}
 
@@ -220,10 +267,6 @@ public class RootPaneView {
 		return boundaryBox;
 	}
 
-	public SubScene getSimulationScene() {
-		return simulationScene;
-	}
-
 	public Button getStartButton() {
 		return startButton;
 	}
@@ -232,16 +275,16 @@ public class RootPaneView {
 		return pauseButton;
 	}
 
+	public double getSimulationSceneWidth() {
+		return simulationSceneWidth;
+	}
+
+	public double getSimulationSceneHeight() {
+		return simulationSceneHeight;
+	}
+
 	public Sphere[] getParticles() {
 		return particles;
-	}
-
-	public DoubleProperty getSimulationRotateAngleX() {
-		return simulationViewRotateAngleX;
-	}
-
-	public DoubleProperty getSimulationRotateAngleY() {
-		return simulationViewRotateAngleY;
 	}
 
 }

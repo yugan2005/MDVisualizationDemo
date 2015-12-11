@@ -14,6 +14,7 @@
             <ButtonBar fx:id="buttonBar" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
                <buttons>
                   <Button fx:id="startButton" mnemonicParsing="false" text="Start" />
+                  <Button fx:id="defaulViewButton" mnemonicParsing="false" text="DefaultView" />
                   <Button fx:id="pauseButton" mnemonicParsing="false" text="Pause" />
                </buttons>
                <padding>
