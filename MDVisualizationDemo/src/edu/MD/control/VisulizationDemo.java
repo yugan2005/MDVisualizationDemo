@@ -84,7 +84,9 @@ public class VisulizationDemo extends Application {
 		zAxis.setMaterial(blueMaterial);
 
 		simulationPane.getChildren().addAll(box,xAxis, yAxis, zAxis);
+		simulationPane.setStyle("-fx-background-color: transparent;");
 		scene = new Scene(simulationPane);
+		
 		Rotate xRotate;
 		Rotate yRotate;
 		simulationPane.getTransforms().setAll(xRotate = new Rotate(0, Rotate.X_AXIS),

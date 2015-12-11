@@ -21,7 +21,7 @@ public class MDSimulation {
 		positions = new double[3][particleNumber];
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < particleNumber; j++) {
-				positions[i][j] = j * 100+100;
+				positions[i][j] = j * 50+50;
 			}
 		}
 		worker = new ScheduledService<double[][]>(){
@@ -59,6 +59,14 @@ public class MDSimulation {
 	}
 
 	public double[] getSystemBoundary() {
-		return new double[] {800,600,600};
+		double[] boundary = new double[3];
+		for (int i=0; i<boundary.length; i++){
+			double maxL = 0;
+			for (int j=0; j<particleNumber; j++){
+				if (positions[i][j]>maxL) maxL = positions[i][j];
+			}
+			boundary[i]=maxL;
+		}
+		return boundary;
 	}
 }

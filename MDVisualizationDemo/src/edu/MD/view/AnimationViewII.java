@@ -6,17 +6,22 @@ import java.util.List;
 import edu.MD.model.MDSimulation;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.ParallelCamera;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
 import javafx.scene.control.Button;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
+import javafx.scene.shape.CullFace;
+import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
 
@@ -51,13 +56,15 @@ public class AnimationViewII {
 	
 	private Group simulationGroup;
 
-	private PerspectiveCamera simulationCamera = new PerspectiveCamera(true);
+	private ParallelCamera simulationCamera;
 
 	private MDSimulation model;
 
 	private DoubleProperty simulationViewRotateAngleX = new SimpleDoubleProperty(0);
 
 	private DoubleProperty simulationViewRotateAngleY = new SimpleDoubleProperty(0);
+	
+	private double anchorX, anchorY, anchorAngleX, anchorAngleY;
 
 	public AnimationViewII(MDSimulation simulationModel) {
 		this.model = simulationModel;
@@ -70,6 +77,9 @@ public class AnimationViewII {
 		invisibleBox.setTranslateY(systemBounday[1] / 2);
 		invisibleBox.setTranslateZ(systemBounday[2] / 2);
 		invisibleBox.setVisible(true);
+		invisibleBox.setDrawMode(DrawMode.LINE);
+		invisibleBox.setCullFace(CullFace.NONE);
+		
 		insideGroup.add(invisibleBox);
 
 		List<Node> axes = buildAxes();
@@ -79,7 +89,7 @@ public class AnimationViewII {
 		int num = model.getParticleNumber();
 		particles = new ArrayList<Sphere>(num);
 		for (int i = 0; i < num; i++) {
-			Sphere particle = new Sphere(SPHERE_SIZE*i, SPHERE_DIV);
+			Sphere particle = new Sphere(SPHERE_SIZE*(i+1), SPHERE_DIV);
 			particle.setTranslateX(positions[0][i]);
 			particle.setTranslateY(positions[1][i]);
 			particle.setTranslateZ(positions[2][i]);
@@ -87,21 +97,49 @@ public class AnimationViewII {
 		}
 		insideGroup.addAll(particles);
 		
-		simulationGroup = new Group(insideGroup);
+		simulationGroup = new Group();
+		simulationGroup.getChildren().addAll(insideGroup);
 		simulationGroup.setAutoSizeChildren(false);
+		
 		
 		double simulationSceneHeight = HEIGHT-BUTTON_HEIGHT;
 		simulationScene = new SubScene(simulationGroup, WIDTH, simulationSceneHeight, true, SceneAntialiasing.BALANCED);
-		simulationScene.setCamera(simulationCamera);
-		Rotate xRotate = new Rotate(0, Rotate.X_AXIS);
-		xRotate.setPivotX(WIDTH/2);
-		xRotate.setPivotY(simulationSceneHeight/2);
-		Rotate yRotate = new Rotate(0, Rotate.Y_AXIS);
-		yRotate.setPivotX(WIDTH/2);
-		yRotate.setPivotY(simulationSceneHeight/2);		
-		simulationScene.getTransforms().setAll(xRotate, yRotate );
+		simulationScene.setFill(Color.YELLOW);
+		simulationGroup.setTranslateX(500);
+		simulationGroup.setTranslateY(200);
+		
+		simulationCamera = new ParallelCamera();
+		simulationCamera.setTranslateX(100);
+		simulationCamera.setTranslateY(150);
+		simulationCamera.setTranslateZ(-100);
+		simulationCamera.setNearClip(0.1);
+		simulationCamera.setFarClip(1000);
+		Rotate xRotate = new Rotate(30, Rotate.X_AXIS);
+		xRotate.setPivotX(simulationCamera.getTranslateX());
+		xRotate.setPivotY(simulationCamera.getTranslateY());
+		xRotate.setPivotZ(simulationCamera.getTranslateZ());
+		Rotate yRotate = new Rotate(60, Rotate.Y_AXIS);
+		yRotate.setPivotX(simulationCamera.getTranslateX());
+		yRotate.setPivotY(simulationCamera.getTranslateY());
+		yRotate.setPivotZ(simulationCamera.getTranslateZ());	
+		simulationCamera.getTransforms().setAll(xRotate, yRotate );
 		xRotate.angleProperty().bind(simulationViewRotateAngleX);
 		yRotate.angleProperty().bind(simulationViewRotateAngleY);
+		simulationScene.setCamera(simulationCamera);
+		
+		
+		simulationScene.setOnMousePressed((MouseEvent event) -> {
+			anchorX = event.getSceneX();
+			anchorY = event.getSceneY();
+			anchorAngleX = simulationViewRotateAngleX.get();
+			anchorAngleY = simulationViewRotateAngleY.get();
+
+		});
+
+		simulationScene.setOnMouseDragged((MouseEvent event) -> {
+			simulationViewRotateAngleX.set(anchorAngleX - (anchorY - event.getSceneY()));
+			simulationViewRotateAngleY.set(anchorAngleY + anchorX - event.getSceneX());
+		});		
 		
 		buttonBar = new HBox(25);
 		buttonBar.setPrefHeight(BUTTON_HEIGHT);
@@ -109,6 +147,7 @@ public class AnimationViewII {
 		startButton = new Button("Start");
 		pauseButton = new Button("Pause");
 		buttonBar.getChildren().addAll(startButton, pauseButton);
+		buttonBar.setAlignment(Pos.CENTER);
 		
 		rootPane = new BorderPane(simulationScene, null, null, buttonBar, null);
 	}
@@ -133,15 +172,15 @@ public class AnimationViewII {
 		final Box xAxis = new Box(AXIS_LENGTH, AXIS_WIDTH, AXIS_WIDTH);
 		final Box yAxis = new Box(AXIS_WIDTH, AXIS_LENGTH, AXIS_WIDTH);
 		final Box zAxis = new Box(AXIS_WIDTH, AXIS_WIDTH, AXIS_LENGTH);
-		xAxis.setTranslateX(systemBounday[0]/2);
-		xAxis.setTranslateY(systemBounday[1]/2);
-		xAxis.setTranslateZ(systemBounday[2]/2);
-		yAxis.setTranslateX(systemBounday[0]/2);
-		yAxis.setTranslateY(systemBounday[1]/2);
-		yAxis.setTranslateZ(systemBounday[2]/2);
-		zAxis.setTranslateX(systemBounday[0]/2);
-		zAxis.setTranslateY(systemBounday[1]/2);
-		zAxis.setTranslateZ(systemBounday[2]/2);
+//		xAxis.setTranslateX(systemBounday[0]/2);
+//		xAxis.setTranslateY(systemBounday[1]/2);
+//		xAxis.setTranslateZ(systemBounday[2]/2);
+//		yAxis.setTranslateX(systemBounday[0]/2);
+//		yAxis.setTranslateY(systemBounday[1]/2);
+//		yAxis.setTranslateZ(systemBounday[2]/2);
+//		zAxis.setTranslateX(systemBounday[0]/2);
+//		zAxis.setTranslateY(systemBounday[1]/2);
+//		zAxis.setTranslateZ(systemBounday[2]/2);
 
 		xAxis.setMaterial(redMaterial);
 		yAxis.setMaterial(greenMaterial);
